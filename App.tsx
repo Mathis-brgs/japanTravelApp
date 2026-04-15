@@ -5,6 +5,8 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import PlanningScreen from './src/screens/PlanningScreen';
 import TodoScreen from './src/screens/TodoScreen';
+import GearScreen from './src/screens/GearScreen';
+import LexiqueScreen from './src/screens/LexiqueScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -28,6 +30,16 @@ export default function App() {
           name="Todo" 
           component={TodoScreen} 
           options={{ title: 'To-Do & Réservations' }} 
+        />
+        <Drawer.Screen 
+          name="Gear" 
+          component={GearScreen} 
+          options={{ title: 'Checklist Matériel' }} 
+        />
+        <Drawer.Screen 
+          name="Lexique" 
+          component={LexiqueScreen} 
+          options={{ title: 'Lexique de Survie' }} 
         />
       </Drawer.Navigator>
     </NavigationContainer>
