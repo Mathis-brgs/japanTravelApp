@@ -7,6 +7,7 @@ import PlanningScreen from './src/screens/PlanningScreen';
 import TodoScreen from './src/screens/TodoScreen';
 import GearScreen from './src/screens/GearScreen';
 import LexiqueScreen from './src/screens/LexiqueScreen';
+import BudgetScreen from './src/screens/BudgetScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -40,6 +41,11 @@ export default function App() {
           name="Lexique" 
           component={LexiqueScreen} 
           options={{ title: 'Lexique de Survie' }} 
+        />
+        <Drawer.Screen 
+          name="Budget" 
+          component={BudgetScreen} 
+          options={{ title: 'Suivi Budget' }} 
         />
       </Drawer.Navigator>
     </NavigationContainer>
