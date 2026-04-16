@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useColorScheme } from 'react-native';
+import { theme } from '../styles/theme';
 
 const phrases = [
   { fr: "L'addition s'il vous plaît", jp: "O-kanjo onegaishimasu" },
@@ -11,13 +12,16 @@ const phrases = [
 ];
 
 export default function LexiqueScreen() {
+  const isDark = useColorScheme() === 'dark';
+  const colors = isDark ? theme.dark : theme.light;
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Phrases Utiles</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Phrases Utiles</Text>
       {phrases.map((item, index) => (
-        <View key={index} style={styles.card}>
-          <Text style={styles.fr}>{item.fr}</Text>
-          <Text style={styles.jp}>{item.jp}</Text>
+        <View key={index} style={[styles.card, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}>
+          <Text style={[styles.fr, { color: colors.textSecondary }]}>{item.fr}</Text>
+          <Text style={[styles.jp, { color: isDark ? colors.text : '#1d3557' }]}>{item.jp}</Text>
         </View>
       ))}
     </ScrollView>
@@ -25,9 +29,9 @@ export default function LexiqueScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#2b2d42', marginBottom: 20 },
-  card: { backgroundColor: '#fff', padding: 15, borderRadius: 8, marginBottom: 12, borderLeftWidth: 5, borderLeftColor: '#e63946' },
-  fr: { fontSize: 14, color: '#8d99ae', marginBottom: 4 },
-  jp: { fontSize: 18, fontWeight: 'bold', color: '#1d3557' }
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  card: { padding: 15, borderRadius: 8, marginBottom: 12, borderLeftWidth: 5 },
+  fr: { fontSize: 14, marginBottom: 4 },
+  jp: { fontSize: 18, fontWeight: 'bold' }
 });
