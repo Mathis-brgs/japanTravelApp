@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
+import { theme } from '../styles/theme';
 
 const morningGear = [
   { id: 'm1', name: 'Téléphone' },
@@ -17,25 +18,25 @@ const eveningCharging = [
 ];
 
 export default function GearScreen() {
+  const isDark = useColorScheme() === 'dark';
+  const colors = isDark ? theme.dark : theme.light;
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
   const toggleItem = (id: string) => {
-    setCheckedItems(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
+    setCheckedItems(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   };
 
-  const RenderSection = (title: string, subtitle: string, items: any[], color: string) => (
+  const RenderSection = (title: string, subtitle: string, items: any[], accentColor: string) => (
     <View style={styles.section}>
-      <Text style={[styles.title, { color: color }]}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={[styles.title, { color: isDark ? colors.text : accentColor }]}>{title}</Text>
+      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
       {items.map((item) => (
         <TouchableOpacity 
           key={item.id}
-          style={[styles.item, checkedItems.includes(item.id) && styles.itemChecked]} 
+          style={[styles.item, { backgroundColor: colors.surface }, checkedItems.includes(item.id) && { backgroundColor: isDark ? '#2A2A2A' : '#e9ecef' }]} 
           onPress={() => toggleItem(item.id)}
         >
-          <Text style={[styles.itemText, checkedItems.includes(item.id) && styles.textChecked]}>
+          <Text style={[styles.itemText, { color: colors.text }, checkedItems.includes(item.id) && { color: colors.textSecondary, textDecorationLine: 'line-through' }]}>
             {checkedItems.includes(item.id) ? '✅ ' : '⬜ '} {item.name}
           </Text>
         </TouchableOpacity>
@@ -44,35 +45,21 @@ export default function GearScreen() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      {RenderSection(
-        "Matin : Départ", 
-        "À vérifier avant de sortir de l'hôtel :", 
-        morningGear, 
-        "#2b2d42"
-      )}
-      
-      <View style={styles.separator} />
-
-      {RenderSection(
-        "Soir : Recharge", 
-        "À faire avant de dormir :", 
-        eveningCharging, 
-        "#38b000"
-      )}
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      {RenderSection("Matin : Départ", "À vérifier avant de sortir :", morningGear, "#2b2d42")}
+      <View style={[styles.separator, { backgroundColor: colors.border }]} />
+      {RenderSection("Soir : Recharge", "À faire avant de dormir :", eveningCharging, colors.accent)}
       <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 20 },
+  container: { flex: 1, padding: 20 },
   section: { marginBottom: 10 },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 5 },
-  subtitle: { fontSize: 14, color: '#8d99ae', marginBottom: 15 },
-  item: { backgroundColor: '#fff', padding: 16, borderRadius: 10, marginBottom: 8, elevation: 1 },
-  itemChecked: { backgroundColor: '#e9ecef' },
-  itemText: { fontSize: 16, color: '#2b2d42' },
-  textChecked: { color: '#adb5bd', textDecorationLine: 'line-through' },
-  separator: { height: 1, backgroundColor: '#dee2e6', marginVertical: 20 }
+  subtitle: { fontSize: 14, marginBottom: 15 },
+  item: { padding: 16, borderRadius: 10, marginBottom: 8, elevation: 1 },
+  itemText: { fontSize: 16 },
+  separator: { height: 1, marginVertical: 20 }
 });
