@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { theme } from '../styles/theme';
 
 interface Task {
   id: string;
@@ -19,6 +20,9 @@ const initialTasks: Task[] = [
 ];
 
 export default function TodoScreen() {
+  const isDark = useColorScheme() === 'dark';
+  const colors = isDark ? theme.dark : theme.light;
+
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
@@ -43,7 +47,6 @@ export default function TodoScreen() {
     );
     setTasks(updatedTasks);
     
-    // Sauvegarde en local
     try {
       await AsyncStorage.setItem('@travel_todos', JSON.stringify(updatedTasks));
     } catch (e) {
@@ -52,19 +55,22 @@ export default function TodoScreen() {
   };
 
   const renderItem = ({ item }: { item: Task }) => (
-    <TouchableOpacity style={styles.taskContainer} onPress={() => toggleTask(item.id)}>
-      <View style={[styles.checkbox, item.done && styles.checkboxDone]}>
+    <TouchableOpacity 
+      style={[styles.taskContainer, { backgroundColor: colors.surface }]} 
+      onPress={() => toggleTask(item.id)}
+    >
+      <View style={[styles.checkbox, { borderColor: colors.primary }, item.done && { backgroundColor: colors.primary }]}>
         {item.done && <Text style={styles.checkmark}>✓</Text>}
       </View>
-      <Text style={[styles.taskText, item.done && styles.taskTextDone]}>
+      <Text style={[styles.taskText, { color: colors.text }, item.done && { color: colors.textSecondary, textDecorationLine: 'line-through' }]}>
         {item.text}
       </Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Checklist & Réservations</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.header, { color: colors.text }]}>Checklist & Réservations</Text>
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
@@ -76,13 +82,12 @@ export default function TodoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  header: { fontSize: 20, fontWeight: 'bold', color: '#2b2d42', padding: 20, paddingBottom: 10 },
+  container: { flex: 1 },
+  header: { fontSize: 20, fontWeight: 'bold', padding: 20, paddingBottom: 10 },
   list: { paddingHorizontal: 20, paddingBottom: 20 },
   taskContainer: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#fff', 
     padding: 16, 
     marginBottom: 10, 
     borderRadius: 8,
@@ -97,13 +102,10 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#e63946',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  checkboxDone: { backgroundColor: '#e63946' },
   checkmark: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
-  taskText: { fontSize: 16, color: '#4a4e69', flex: 1 },
-  taskTextDone: { textDecorationLine: 'line-through', color: '#adb5bd' }
+  taskText: { fontSize: 16, flex: 1 }
 });
