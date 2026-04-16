@@ -8,6 +8,7 @@ import TodoScreen from './src/screens/TodoScreen';
 import GearScreen from './src/screens/GearScreen';
 import LexiqueScreen from './src/screens/LexiqueScreen';
 import BudgetScreen from './src/screens/BudgetScreen';
+import WishlistScreen from './src/screens/WishlistScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -46,6 +47,11 @@ export default function App() {
           name="Budget" 
           component={BudgetScreen} 
           options={{ title: 'Suivi Budget' }} 
+        />
+        <Drawer.Screen 
+          name="Wishlist" 
+          component={WishlistScreen} 
+          options={{ title: 'Wishlist Shopping' }} 
         />
       </Drawer.Navigator>
     </NavigationContainer>
