@@ -1,17 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, useColorScheme } from 'react-native';
+import { theme } from '../styles/theme';
 
 export default function ToolsScreen() {
+  const isDark = useColorScheme() === 'dark';
+  const colors = isDark ? theme.dark : theme.light;
   
   const openMaps = (query: string) => {
-    // On génère une URL de recherche Google Maps
     const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
     Linking.openURL(url);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Outils de poche</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Outils de poche</Text>
       
       <View style={styles.buttonRow}>
         <TouchableOpacity 
@@ -35,13 +37,17 @@ export default function ToolsScreen() {
       >
         <Text style={styles.buttonText}>ATM</Text>
       </TouchableOpacity>
+      
+      <Text style={[styles.info, { color: colors.textSecondary }]}>
+        Ces boutons ouvrent directement Google Maps avec la recherche filtrée autour de ta position.
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f8f9fa' },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#2b2d42', marginBottom: 20 },
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
   buttonRow: { flexDirection: 'row', justifyContent: 'space-between' },
   toolButton: { 
     flex: 1, 
@@ -53,5 +59,5 @@ const styles = StyleSheet.create({
     elevation: 3
   },
   buttonText: { color: '#fff', fontWeight: 'bold', textAlign: 'center' },
-  info: { marginTop: 30, color: '#8d99ae', textAlign: 'center', fontSize: 13 }
+  info: { marginTop: 30, textAlign: 'center', fontSize: 13 }
 });
