@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard, Switch, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard, Switch, ActivityIndicator, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { theme } from '../styles/theme';
 
 interface Expense {
   id: string;
@@ -13,11 +14,13 @@ interface Expense {
 }
 
 export default function BudgetScreen() {
+  const isDark = useColorScheme() === 'dark';
+  const colors = isDark ? theme.dark : theme.light;
+
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [amount, setAmount] = useState('');
   const [label, setLabel] = useState('');
   const [isYen, setIsYen] = useState(true);
-  
   const [yenRate, setYenRate] = useState(163); 
   const [isLoadingRate, setIsLoadingRate] = useState(false);
 
@@ -27,10 +30,8 @@ export default function BudgetScreen() {
     const initData = async () => {
       const savedExpenses = await AsyncStorage.getItem('@travel_expenses');
       if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
-
       const savedRate = await AsyncStorage.getItem('@last_yen_rate');
       if (savedRate) setYenRate(JSON.parse(savedRate));
-
       fetchCurrentRate();
     };
     initData();
@@ -41,25 +42,17 @@ export default function BudgetScreen() {
     try {
       const response = await fetch('https://api.frankfurter.app/latest?from=EUR&to=JPY');
       const data = await response.json();
-      
       if (data.rates && data.rates.JPY) {
-        const newRate = data.rates.JPY;
-        setYenRate(newRate);
-        await AsyncStorage.setItem('@last_yen_rate', JSON.stringify(newRate));
+        setYenRate(data.rates.JPY);
+        await AsyncStorage.setItem('@last_yen_rate', JSON.stringify(data.rates.JPY));
       }
-    } catch (e) {
-      console.log("Erreur API (probablement offline), utilisation du taux local");
-    } finally {
-      setIsLoadingRate(false);
-    }
+    } catch (e) { console.log("Offline"); } finally { setIsLoadingRate(false); }
   };
 
   const addExpense = async () => {
     if (!amount || !label) return;
-
     const rawAmount = parseFloat(amount.replace(',', '.'));
     let eurValue = isYen ? rawAmount / yenRate : rawAmount;
-
     const newExpense: Expense = {
       id: Date.now().toString(),
       originalAmount: rawAmount,
@@ -69,131 +62,99 @@ export default function BudgetScreen() {
       label: label,
       date: new Date().toLocaleDateString('fr-FR'),
     };
-
     const updated = [newExpense, ...expenses];
     setExpenses(updated);
     await AsyncStorage.setItem('@travel_expenses', JSON.stringify(updated));
-    
-    setAmount('');
-    setLabel('');
-    Keyboard.dismiss();
+    setAmount(''); setLabel(''); Keyboard.dismiss();
   };
 
   const currentTotalSpent = expenses.reduce((sum, exp) => sum + exp.convertedAmount, 0);
   const remaining = TOTAL_BUDGET - currentTotalSpent;
 
   return (
-    <View style={styles.container}>
-      {/* HEADER : RÉSUMÉ DU BUDGET */}
-      <View style={styles.summaryCard}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.summaryCard, { backgroundColor: isDark ? colors.surface : '#1d3557' }]}>
         <View style={styles.headerRow}>
-          <Text style={styles.summaryTitle}>Budget Restant</Text>
+          <Text style={[styles.summaryTitle, { color: '#f1faee' }]}>Budget Restant</Text>
           {isLoadingRate ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <TouchableOpacity onPress={fetchCurrentRate}>
-              <Text style={styles.rateInfo}>Taux: 1€ = {yenRate.toFixed(1)}¥ ↻</Text>
+              <Text style={[styles.rateInfo, { color: '#a8dadc' }]}>1€ = {yenRate.toFixed(1)}¥ ↻</Text>
             </TouchableOpacity>
           )}
         </View>
-        <Text style={styles.remainingAmount}>{remaining.toFixed(2)} €</Text>
+        <Text style={[styles.remainingAmount, { color: '#fff' }]}>{remaining.toFixed(2)} €</Text>
         <View style={styles.progressBarBg}>
-          <View style={[styles.progressBarFill, { width: `${Math.min((currentTotalSpent / TOTAL_BUDGET) * 100, 100)}%` }]} />
+          <View style={[styles.progressBarFill, { width: `${Math.min((currentTotalSpent / TOTAL_BUDGET) * 100, 100)}%`, backgroundColor: colors.primary }]} />
         </View>
-        <Text style={styles.totalSpent}>
-          Dépensé : {currentTotalSpent.toFixed(2)} € / {TOTAL_BUDGET} €
-        </Text>
+        <Text style={[styles.totalSpent, { color: '#a8dadc' }]}>Dépensé : {currentTotalSpent.toFixed(2)} € / {TOTAL_BUDGET} €</Text>
       </View>
 
-      {/* FORMULAIRE D'AJOUT */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { backgroundColor: colors.surface }]}>
         <View style={styles.currencyRow}>
-          <Text style={styles.currencyLabel}>
-            Saisie en <Text style={{ color: '#e63946' }}>{isYen ? 'Yens (¥)' : 'Euros (€)'}</Text>
-          </Text>
-          <Switch 
-            value={isYen} 
-            onValueChange={setIsYen} 
-            trackColor={{ false: "#767577", true: "#e63946" }}
-          />
+          <Text style={[styles.currencyLabel, { color: colors.text }]}>Saisie en <Text style={{ color: colors.primary }}>{isYen ? 'Yens (¥)' : 'Euros (€)'}</Text></Text>
+          <Switch value={isYen} onValueChange={setIsYen} trackColor={{ false: "#767577", true: colors.primary }} />
         </View>
-
         <TextInput 
-          style={styles.input} 
-          placeholder={isYen ? "Montant en ¥" : "Montant en €"} 
-          keyboardType="numeric"
-          value={amount}
-          onChangeText={setAmount}
+          style={[styles.input, { color: colors.text, borderBottomColor: colors.border }]} 
+          placeholder={isYen ? "Montant en ¥" : "Montant en €"} placeholderTextColor={colors.textSecondary}
+          keyboardType="numeric" value={amount} onChangeText={setAmount}
         />
-        
         {isYen && amount ? (
-          <Text style={styles.previewText}>
-            ≈ {(parseFloat(amount.replace(',', '.')) / yenRate).toFixed(2)} €
-          </Text>
+          <Text style={[styles.previewText, { color: colors.primary }]}>≈ {(parseFloat(amount.replace(',', '.')) / yenRate).toFixed(2)} €</Text>
         ) : null}
-
         <TextInput 
-          style={styles.input} 
-          placeholder="C'était quoi ?" 
-          value={label}
-          onChangeText={setLabel}
+          style={[styles.input, { color: colors.text, borderBottomColor: colors.border }]} 
+          placeholder="C'était quoi ?" placeholderTextColor={colors.textSecondary}
+          value={label} onChangeText={setLabel}
         />
-        
-        <TouchableOpacity style={styles.addButton} onPress={addExpense}>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]} onPress={addExpense}>
           <Text style={styles.addButtonText}>Ajouter la dépense</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.historyTitle}>Historique</Text>
       <FlatList
         data={expenses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.expenseItem}>
+          <View style={[styles.expenseItem, { backgroundColor: colors.surface, borderLeftColor: isDark ? colors.primary : '#1d3557' }]}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.expenseLabel}>{item.label}</Text>
-              <Text style={styles.expenseDate}>
-                {item.date} {item.originalCurrency === 'JPY' ? `• Taux: ${item.rateUsed}` : ''}
-              </Text>
+              <Text style={[styles.expenseLabel, { color: colors.text }]}>{item.label}</Text>
+              <Text style={[styles.expenseDate, { color: colors.textSecondary }]}>{item.date} {item.originalCurrency === 'JPY' ? `• Taux: ${item.rateUsed}` : ''}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.expenseAmount}>
-                {item.originalCurrency === 'JPY' ? `${item.originalAmount} ¥` : `${item.originalAmount} €`}
-              </Text>
-              {item.originalCurrency === 'JPY' && (
-                <Text style={styles.subAmountConverted}>≈ {item.convertedAmount} €</Text>
-              )}
+              <Text style={[styles.expenseAmount, { color: colors.text }]}>{item.originalAmount} {item.originalCurrency === 'JPY' ? '¥' : '€'}</Text>
+              {item.originalCurrency === 'JPY' && <Text style={[styles.subAmountConverted, { color: colors.primary }]}>≈ {item.convertedAmount} €</Text>}
             </View>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>Aucune dépense pour le moment.</Text>}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 15 },
-  summaryCard: { backgroundColor: '#1d3557', padding: 20, borderRadius: 15, marginBottom: 15 },
+  container: { flex: 1, padding: 15 },
+  summaryCard: { padding: 20, borderRadius: 15, marginBottom: 15 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  summaryTitle: { color: '#f1faee', fontSize: 14, opacity: 0.8 },
-  rateInfo: { color: '#a8dadc', fontSize: 12, fontWeight: 'bold' },
-  remainingAmount: { color: '#fff', fontSize: 32, fontWeight: 'bold', marginVertical: 5 },
+  summaryTitle: { fontSize: 14, opacity: 0.8 },
+  rateInfo: { fontSize: 12, fontWeight: 'bold' },
+  remainingAmount: { fontSize: 32, fontWeight: 'bold', marginVertical: 5 },
   progressBarBg: { height: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3, marginVertical: 10 },
-  progressBarFill: { height: 6, backgroundColor: '#e63946', borderRadius: 3 },
-  totalSpent: { color: '#a8dadc', fontSize: 12 },
-  inputContainer: { backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 15, elevation: 3 },
+  progressBarFill: { height: 6, borderRadius: 3 },
+  totalSpent: { fontSize: 12 },
+  inputContainer: { padding: 15, borderRadius: 12, marginBottom: 15, elevation: 3 },
   currencyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  currencyLabel: { fontWeight: '700', color: '#4a4e69' },
-  input: { borderBottomWidth: 1, borderBottomColor: '#dee2e6', marginBottom: 12, padding: 8, fontSize: 16, color: '#2b2d42' },
-  previewText: { fontSize: 12, color: '#e63946', marginBottom: 10, fontWeight: 'bold', marginTop: -10 },
-  addButton: { backgroundColor: '#e63946', padding: 14, borderRadius: 8, alignItems: 'center' },
+  currencyLabel: { fontWeight: '700' },
+  input: { borderBottomWidth: 1, marginBottom: 12, padding: 8, fontSize: 16 },
+  previewText: { fontSize: 12, marginBottom: 10, fontWeight: 'bold', marginTop: -10 },
+  addButton: { padding: 14, borderRadius: 8, alignItems: 'center' },
   addButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  historyTitle: { fontSize: 18, fontWeight: 'bold', color: '#2b2d42', marginBottom: 10, marginLeft: 5 },
-  expenseItem: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, backgroundColor: '#fff', marginBottom: 8, borderRadius: 10, borderLeftWidth: 4, borderLeftColor: '#1d3557' },
-  expenseLabel: { fontSize: 16, fontWeight: 'bold', color: '#2b2d42' },
-  expenseDate: { fontSize: 11, color: '#8d99ae', marginTop: 2 },
-  expenseAmount: { fontSize: 16, fontWeight: 'bold', color: '#2b2d42' },
-  subAmountConverted: { fontSize: 12, color: '#e63946', fontWeight: '600' },
-  emptyText: { textAlign: 'center', color: '#8d99ae', marginTop: 20 }
+  historyTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, marginLeft: 5 },
+  expenseItem: { flexDirection: 'row', justifyContent: 'space-between', padding: 15, marginBottom: 8, borderRadius: 10, borderLeftWidth: 4 },
+  expenseLabel: { fontSize: 16, fontWeight: 'bold' },
+  expenseDate: { fontSize: 11, marginTop: 2 },
+  expenseAmount: { fontSize: 16, fontWeight: 'bold' },
+  subAmountConverted: { fontSize: 12, fontWeight: '600' }
 });
