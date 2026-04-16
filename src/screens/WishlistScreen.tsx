@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { theme } from '../styles/theme';
 
 interface WishItem {
   id: string;
@@ -11,6 +12,9 @@ interface WishItem {
 }
 
 export default function WishlistScreen() {
+  const isDark = useColorScheme() === 'dark';
+  const colors = isDark ? theme.dark : theme.light;
+
   const [wishlist, setWishlist] = useState<WishItem[]>([]);
   const [name, setName] = useState('');
   const [store, setStore] = useState('');
@@ -52,30 +56,33 @@ export default function WishlistScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.form}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.form, { backgroundColor: colors.surface }]}>
         <TextInput 
-          style={styles.input} 
+          style={[styles.input, { color: colors.text, borderBottomColor: colors.border }]} 
           placeholder="Objet (ex: Figurine Luffy)" 
+          placeholderTextColor={colors.textSecondary}
           value={name}
           onChangeText={setName}
         />
         <View style={styles.row}>
           <TextInput 
-            style={[styles.input, { flex: 2, marginRight: 10 }]} 
+            style={[styles.input, { flex: 2, marginRight: 10, color: colors.text, borderBottomColor: colors.border }]} 
             placeholder="Lieu (ex: Akihabara)" 
+            placeholderTextColor={colors.textSecondary}
             value={store}
             onChangeText={setStore}
           />
           <TextInput 
-            style={[styles.input, { flex: 1 }]} 
+            style={[styles.input, { flex: 1, color: colors.text, borderBottomColor: colors.border }]} 
             placeholder="Prix ¥" 
+            placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
             value={price}
             onChangeText={setPrice}
           />
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={addItem}>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]} onPress={addItem}>
           <Text style={styles.addButtonText}>Ajouter à la liste</Text>
         </TouchableOpacity>
       </View>
@@ -85,15 +92,29 @@ export default function WishlistScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity 
-            style={[styles.itemCard, item.bought && styles.itemBought]} 
+            style={[
+              styles.itemCard, 
+              { backgroundColor: colors.surface }, 
+              item.bought && { opacity: 0.5 }
+            ]} 
             onPress={() => toggleBought(item.id)}
           >
             <View style={{ flex: 1 }}>
-              <Text style={[styles.itemName, item.bought && styles.textCrossed]}>{item.name}</Text>
-              <Text style={styles.itemDetails}>{item.store} • {item.price} ¥</Text>
+              <Text style={[styles.itemName, { color: colors.text }, item.bought && styles.textCrossed]}>
+                {item.name}
+              </Text>
+              <Text style={[styles.itemDetails, { color: colors.textSecondary }]}>
+                {item.store} • {item.price} ¥
+              </Text>
             </View>
-            <View style={[styles.statusBadge, item.bought && styles.statusBadgeDone]}>
-              <Text style={styles.statusText}>{item.bought ? "OK" : "À trouver"}</Text>
+            <View style={[
+              styles.statusBadge, 
+              { borderColor: colors.border, backgroundColor: isDark ? colors.background : '#f1faee' },
+              item.bought && { backgroundColor: colors.primary, borderColor: colors.primary }
+            ]}>
+              <Text style={[styles.statusText, { color: item.bought ? '#fff' : colors.text }]}>
+                {item.bought ? "OK" : "À trouver"}
+              </Text>
             </View>
           </TouchableOpacity>
         )}
@@ -103,18 +124,16 @@ export default function WishlistScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 15 },
-  form: { backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 20, elevation: 3 },
-  input: { borderBottomWidth: 1, borderBottomColor: '#dee2e6', marginBottom: 12, padding: 8, fontSize: 16 },
+  container: { flex: 1, padding: 15 },
+  form: { padding: 15, borderRadius: 12, marginBottom: 20, elevation: 3 },
+  input: { borderBottomWidth: 1, marginBottom: 12, padding: 8, fontSize: 16 },
   row: { flexDirection: 'row' },
-  addButton: { backgroundColor: '#e63946', padding: 12, borderRadius: 8, alignItems: 'center' },
+  addButton: { padding: 12, borderRadius: 8, alignItems: 'center' },
   addButtonText: { color: '#fff', fontWeight: 'bold' },
-  itemCard: { flexDirection: 'row', backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 10, alignItems: 'center', elevation: 1 },
-  itemBought: { opacity: 0.6, backgroundColor: '#e9ecef' },
-  itemName: { fontSize: 16, fontWeight: 'bold', color: '#2b2d42' },
-  itemDetails: { fontSize: 14, color: '#8d99ae' },
+  itemCard: { flexDirection: 'row', padding: 15, borderRadius: 10, marginBottom: 10, alignItems: 'center', elevation: 1 },
+  itemName: { fontSize: 16, fontWeight: 'bold' },
+  itemDetails: { fontSize: 14, marginTop: 4 },
   textCrossed: { textDecorationLine: 'line-through' },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15, backgroundColor: '#f1faee', borderWidth: 1, borderColor: '#a8dadc' },
-  statusBadgeDone: { backgroundColor: '#a8dadc', borderColor: '#457b9d' },
-  statusText: { fontSize: 12, fontWeight: 'bold', color: '#1d3557' }
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15, borderWidth: 1 },
+  statusText: { fontSize: 12, fontWeight: 'bold' }
 });
