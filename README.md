@@ -16,26 +16,21 @@ Application mobile conçue en React Native pour centraliser la logistique, le pl
 
 ## Installation et Lancement
 
-1. Cloner le dépôt
-\`\`\`bash
-git clone <url-du-repo>
-\`\`\`
-
-2. Installer les dépendances
+1. Installer les dépendances
 \`\`\`bash
 npm install
 # ou
 yarn install
 \`\`\`
 
-3. Lancer l'application (iOS / Android)
+2. Lancer l'application (iOS / Android)
 \`\`\`bash
 npx react-native run-ios
 # ou
 npx react-native run-android
 \`\`\`
 
-## 📝 Roadmap des Fonctionnalités Futures
+## Roadmap des Fonctionnalités Futures
 - [ ] Ajout de la "Food Map" interactive.
 - [ ] Bouton SOS (Toilettes & Kombini).
 - [ ] Lexique de survie.

@@ -2,8 +2,9 @@ import 'react-native-gesture-handler';
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from 'react-native';
-import { theme } from './src/styles/theme';  
+import { theme } from './src/styles/theme';
 
 import PlanningScreen from './src/screens/PlanningScreen';
 import TodoScreen from './src/screens/TodoScreen';
@@ -20,8 +21,9 @@ export default function App() {
   const colors = colorScheme === 'dark' ? theme.dark : theme.light;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <NavigationContainer>
-      <Drawer.Navigator 
+      <Drawer.Navigator
         initialRouteName="Planning"
         screenOptions={{
           headerStyle: { backgroundColor: colors.primary },
@@ -40,5 +42,6 @@ export default function App() {
         <Drawer.Screen name="Tools" component={ToolsScreen} options={{ title: 'Outils' }} />
       </Drawer.Navigator>
     </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
